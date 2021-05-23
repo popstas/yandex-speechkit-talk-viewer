@@ -1,0 +1,43 @@
+{
+  "name": "yandex-speechkit-talk-viewer",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "cross-env SERVER_URL=https://tts-server.popstas.ru HOST=0.0.0.0 PORT=5772 nuxt",
+    "dev-clean": "nuxt",
+    "build": "nuxt build",
+    "start": "nuxt start",
+    "generate": "nuxt generate",
+    "lint:js": "eslint --ext \".js,.vue\" --ignore-path .gitignore .",
+    "lint": "npm run lint:js",
+    "version": "npm run changelog && git add CHANGELOG.md",
+    "postversion": "git push && npm run release",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s -r 0",
+    "release": "conventional-github-releaser -p angular && npm publish"
+  },
+  "dependencies": {
+    "@nuxtjs/axios": "^5.13.1",
+    "@nuxtjs/pwa": "^3.3.5",
+    "core-js": "^3.9.1",
+    "element-ui": "^2.15.1",
+    "firebase": "^8.3.3",
+    "firebaseui": "^4.8.0",
+    "nuxt": "^2.15.3",
+    "vue-shortkey": "^3.1.7",
+    "vuedraggable": "^2.24.3",
+    "vuex-persistedstate": "^4.0.0-beta.3"
+  },
+  "devDependencies": {
+    "@nuxt/types": "^2.15.3",
+    "@nuxt/typescript-build": "^2.1.0",
+    "@nuxtjs/eslint-config-typescript": "^6.0.0",
+    "@nuxtjs/eslint-module": "^3.0.2",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.22.0",
+    "eslint-config-prettier": "^8.1.0",
+    "eslint-plugin-nuxt": "^2.0.0",
+    "eslint-plugin-prettier": "^3.3.1",
+    "eslint-plugin-vue": "^7.7.0",
+    "prettier": "^2.2.1"
+  }
+}
