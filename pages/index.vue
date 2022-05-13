@@ -24,6 +24,10 @@
         <el-col :span="24"><TalkItem @remove="removeItem" :id="item.id"></TalkItem></el-col>
       </el-row>
     </draggable>
+
+    <div class="right-actions" v-if="isLogined && isTTSAvailable">
+      <el-button title="upload" class="action-upload" icon="el-icon-upload2" @click="$refs.file.click()"></el-button>
+    </div>
   </div>
 
 </template>
@@ -42,6 +46,19 @@
 }
 .sortable-chosen .talk-item {
   background: #ddd;
+}
+
+.right-actions {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+}
+.right-actions button {
+  border-radius: 100%;
+  border-width: 2px;
+  width: 48px;
+  height: 48px;
+  padding: 0;
 }
 </style>
 

@@ -8,7 +8,7 @@
 <style>
 .profile {
   float: right;
-  margin: 20px 8px -20px 0;
+  margin: 0px 0px -20px 0;
 }
 .profile a {
   color: #000;

@@ -69,9 +69,17 @@
 .talk-item__player {
   margin-top: 15px;
 }
+.talk-item__player:hover .talk-item__player-speed {
+  opacity: 1;
+}
 .talk-item__player-speed {
   float: right;
   margin-top: 12px;
+}
+@media (max-width: 640px) {
+  .talk-item__player-speed {
+    opacity: 0;
+  }
 }
 </style>
 

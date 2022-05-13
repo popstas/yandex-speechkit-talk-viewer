@@ -1,6 +1,6 @@
 <template>
   <el-container>
-    <el-header height="66px">
+    <el-header height="36px">
       <el-row>
         <el-col :span="12">
           <div role="menubar" class="header__menu el-menu--horizontal el-menu">
@@ -59,6 +59,11 @@ body {
 }
 #__nuxt, #__layout {
   height: 100%;
+}
+
+.el-menu--horizontal > .el-menu-item {
+  height: 30px;
+  line-height: 30px;
 }
 
 .el-container {
