@@ -1,16 +1,19 @@
-FROM node:12
-WORKDIR /app
+FROM node:16-alpine AS builder
+
+WORKDIR /build
 COPY package*.json ./
 RUN npm install
-# RUN npm run build
 
-# Only copy over the node pieces we need from the above image
-# FROM node:12
-# WORKDIR /app
-# COPY --from=0 /app .
-# COPY . .
+# RUN chown -R node:node /app
+# USER node
+
+FROM node:16-alpine
+
+WORKDIR /app
+#
+COPY --from=builder /build/node_modules ./node_modules
+COPY . .
 
 EXPOSE 5772
 
-# CMD ["npm", "start"]
-CMD npm run dev
+CMD npm run dev-clean
