@@ -133,6 +133,10 @@ export default Vue.extend({
           }
         }
       );
+
+      // clear file input
+      this.$refs.file.value = '';
+
       if (answer && answer.data && answer.data.opId) {
         this.formMsg = 'Success!';
         this.formState = 'success';
@@ -181,7 +185,6 @@ export default Vue.extend({
       this.isTTSAvailable = false;
       console.log('TTS server not available');
     }
-    
   },
   beforeDestroy() {
     clearInterval(this.interval);
