@@ -21,9 +21,10 @@ export default {
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
   plugins: [
+    '@/plugins/counters',
     '@/plugins/element-ui',
     '@/plugins/localStorage',
-    '@/plugins/vue-shortkey'
+    '@/plugins/vue-shortkey',
   ],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
@@ -48,6 +49,7 @@ export default {
 
   env: {
     SERVER_URL: process.env.SERVER_URL,
+    YM_ID: process.env.YM_ID,
   },
 
   // PWA module configuration: https://go.nuxtjs.dev/pwa
