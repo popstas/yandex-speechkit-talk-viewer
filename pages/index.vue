@@ -7,8 +7,34 @@
             <label>Upload
               <input type="file" id="file" ref="file" v-on:change="handleFileUpload()"/>
             </label>
+            <el-checkbox v-model="postProcessing" >Вырезать тишину и шум</el-checkbox>
+            <el-checkbox v-model="punctuation" >Расставлять знаки препинания</el-checkbox>
+            <el-select v-model="language" placeholder="Язык">
+              <el-option
+                v-for="lang in ['ru', 'en']"
+                :key="lang"
+                :label="lang"
+                :value="lang"
+              >
+              </el-option>
+            </el-select>
             <el-link :type="formState" v-html="formMsg"></el-link>
-            <!-- <el-button v-on:click="submitFile()">Submit</el-button> -->
+
+            <template  v-if="$store.state.featAudioRecorder">
+              <br/><br/><audio-recorder
+                :upload-url="recorderUploadUrl"
+                :attempts="1"
+                :time="10"
+                :headers="recorderHeaders"
+                :before-recording="recorderCallback"
+                :pause-recording="recorderCallback"
+                :after-recording="recorderCallback"
+                :select-record="recorderCallback"
+                :before-upload="recorderCallback"
+                :successful-upload="recorderCallback"
+                :failed-upload="recorderCallback"/>
+               <el-button v-on:click="submitFile()">Submit</el-button>
+            </template>
           </template>
           <el-link v-if="!isTTSAvailable" type="danger">Сервер распознавания недоступен, попробуйте позже</el-link>
         </div>
@@ -60,6 +86,17 @@
   height: 48px;
   padding: 0;
 }
+
+.upload-form .el-link {
+  vertical-align: baseline;
+}
+.el-checkbox__input {
+  margin-top: -4px;
+}
+.el-checkbox__label {
+  font-weight: normal;
+  margin-right: 1rem;
+}
 </style>
 
 <script lang="ts">
@@ -104,13 +141,45 @@ export default Vue.extend({
         this.$store.commit('items', val);
       }
     },
+    postProcessing: {
+      get() {
+        return this.$store.state.postProcessing;
+      },
+      set(val) {
+        this.$store.commit('postProcessing', val);
+      }
+    },
+    language: {
+      get() {
+        return this.$store.state.language;
+      },
+      set(val) {
+        this.$store.commit('language', val);
+      }
+    },
+    punctuation: {
+      get() {
+        return this.$store.state.punctuation;
+      },
+      set(val) {
+        this.$store.commit('punctuation', val);
+      }
+    },
     isDraggable() {
       return false; // disabled
       // return window.innerWidth > 640;
     },
     isLogined() {
       return this.$store.state.user && !!this.$store.state.user.email;
-    }
+    },
+    recorderHeaders() {
+      return {
+        'X-Custom-Header': 'some data',
+      };
+    },
+    recorderUploadUrl() {
+      return this.$store.state.serverUrl + '/upload';
+    },
   },
 
   methods: {
@@ -123,6 +192,9 @@ export default Vue.extend({
       this.formMsg = 'Processing...';
       let formData = new FormData();
       formData.append('file', this.file);
+      formData.append('postProcessing', this.postProcessing);
+      formData.append('language', this.language);
+      formData.append('punctuation', this.punctuation);
 
       const answer = await this.$axios.post(
         this.$store.state.serverUrl + '/upload',
@@ -154,7 +226,11 @@ export default Vue.extend({
     removeItem(id) {
       console.log('remove item:', id);
       this.$store.dispatch('removeItem', id);
-    }
+    },
+
+    recorderCallback(data) {
+      console.debug(data);
+    },
   },
 
   head() {

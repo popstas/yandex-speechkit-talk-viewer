@@ -9,7 +9,6 @@ function insertYandexMetrika () {
 }
 
 export default ({route, store, app}, inject) => {
-  console.log("counters:", process.env.YM_ID);
   const ym_id = process.env.YM_ID || false;
   if (ym_id) {
     insertYandexMetrika();

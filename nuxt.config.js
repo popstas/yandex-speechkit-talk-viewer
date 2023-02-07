@@ -10,8 +10,6 @@ export default {
     title: 'yandex-speechkit-talk-viewer',
     meta: [
       { charset: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { hid: 'description', name: 'description', content: '' },
     ],
     link: [{ rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' }],
   },
@@ -24,6 +22,8 @@ export default {
     '@/plugins/counters',
     '@/plugins/element-ui',
     '@/plugins/localStorage',
+    '@/plugins/vue-audio-recorder',
+    '@/plugins/vue-awesome',
     '@/plugins/vue-shortkey',
   ],
 
@@ -54,9 +54,22 @@ export default {
 
   // PWA module configuration: https://go.nuxtjs.dev/pwa
   pwa: {
-    manifest: {
-      lang: 'en',
+    meta: {
+      nativeUI: true,
     },
+    manifest: {
+      short_name: 'Talks',
+      file_handlers: [{
+        action: '/',
+        accept: {
+          'audio/aac': ['.aac'],
+          'audio/mpeg': ['.mp3'],
+          'audio/opus': ['.opus'],
+          'audio/vorbis': ['.ogg'],
+          'audio/wav': ['.wav'],
+        }
+      }],
+    }
   },
 
   // Build Configuration: https://go.nuxtjs.dev/config-build

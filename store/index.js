@@ -23,7 +23,11 @@ export const state = () => ({
   log: [],
   lastTalkId: 0,
   activeItem: '',
-});
+  postProcessing: true,
+  language: 'ru',
+  punctuation: true,
+  featAudioRecorder: false,
+})
 
 export const getters = {
   getFilteredItems(state, getters) {
@@ -74,6 +78,15 @@ export const mutations = {
   },
   activeItem(state, newValue) {
     state.activeItem = newValue;
+  },
+  postProcessing(state, newValue) {
+    state.postProcessing = newValue;
+  },
+  language(state, newValue) {
+    state.language = newValue;
+  },
+  punctuation(state, newValue) {
+    state.punctuation = newValue;
   },
 };
 
