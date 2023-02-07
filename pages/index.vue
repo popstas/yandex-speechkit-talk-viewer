@@ -20,7 +20,7 @@
 
     <div class="items__total">Total: {{ items.length }}</div>
     <draggable v-model="items" tag="div" class="items__history" :options="{disabled : !isDraggable}">
-      <el-row :gutter="12" v-for="item of items" :key="item.id">
+      <el-row :gutter="12" v-for="item of items.slice(0, 20)" :key="item.id">
         <el-col :span="24"><TalkItem @remove="removeItem" :id="item.id"></TalkItem></el-col>
       </el-row>
     </draggable>
