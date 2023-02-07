@@ -17,7 +17,9 @@
       </div>
     </div>
 
-    <div @mouseup="handleSelection" class="chunks" :contenteditable="this.active">
+<!--    <pre v-html="editedText"></pre>-->
+
+    <div @mouseup="handleSelection" class="chunks" ref="chunks" :contenteditable="active">
       <div :class="{'chunk-line': true, 'chunk-line_active': isChunkActive(chunk) }"
       v-for="chunk, k in chunksFiltered" :key="k"
       :title="'Click to go to: ' + chunk.alternatives[0].words[0].startTime"
@@ -25,6 +27,11 @@
         {{ chunk.alternatives[0].text }}
       </div>
     </div>
+
+    <a v-if="active && isShare" class="talk-item__share" @click.prevent="share">
+      <icon name="share-alt"></icon>
+    </a>
+
     <button class="talk-item__remove" @click="$emit('remove', op.id)">✖</button>
   </el-card>
 </template>
@@ -66,6 +73,13 @@
   bottom: 25px;
   right: 15px;
 }
+.talk-item__share {
+  display: inline-block;
+  margin-top: 20px;
+  opacity: 0.5;
+  cursor: pointer;
+}
+
 .talk-item__player {
   margin-top: 15px;
 }
@@ -84,6 +98,8 @@
 </style>
 
 <script lang="js">
+import "vue-awesome/icons/share-alt";
+
 export default {
   props: ['id', 't', 'active'],
   data() {
@@ -93,6 +109,8 @@ export default {
       currentTime: 0,
       audioReady: true,
       selectionProcess: false,
+      isShare: false,
+      editedText: '',
     }
   },
 
@@ -117,6 +135,14 @@ export default {
     },
     talkInfo() {
       return 'Формат: ' + this.op.uploadedUri.substring(this.op.uploadedUri.length - 3);
+    },
+    shortText() {
+      console.log('this.chunksFiltered: ', this.chunksFiltered);
+      return this.chunksFiltered
+        ?.slice(0, 5)
+        .map(ch => ch.alternatives[0].text)
+        .join('\n')
+        .substring(0, 150);
     }
   },
 
@@ -132,6 +158,7 @@ export default {
 
 
   async mounted() {
+    this.isShare = !!navigator.share;
     this.tryGetData(6);
 
     setTimeout(() => {
@@ -175,7 +202,7 @@ export default {
       // document.designMode = 'on';
       // this.$el.querySelector('.chunks').designMode = 'on';
     }
-    
+
   },
 
   beforeDestroy() {
@@ -183,6 +210,22 @@ export default {
   },
 
   methods: {
+    share() {
+      if (navigator.share) {
+        this.editedText = this.getEditedText();
+
+        navigator.share({
+          title: this.title,
+          text: `${this.op.filename}\n\n${this.shortText}\n\n`,
+          url: window.location.href
+        });
+      }
+    },
+
+    getEditedText() {
+      return this.$refs.chunks.innerText;
+    },
+
     async tryGetData(tries) {
       // console.log('tryGetData');
       if (!this.id || tries <= 0) {
