@@ -1,3 +1,7 @@
+# [3.0.0](https://github.com/popstas/yandex-speechkit-talk-viewer/compare/v2.0.0...v3.0.0) (2023-06-14)
+
+
+
 # [2.0.0](https://github.com/popstas/yandex-speechkit-talk-viewer/compare/v1.0.0...v2.0.0) (2023-06-14)
 
 
