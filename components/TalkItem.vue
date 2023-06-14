@@ -1,10 +1,14 @@
 <template>
-  <el-card :data-id="op.id" :class="{'talk-item': true, 'talk-item_undone': op.id && !op.done, 'talk-item_active': active || activeItem === id}">
+  <el-card :data-id="op.id"
+           :class="{'talk-item': true, 'talk-item_undone': op.id && !op.done, 'talk-item_clicked': clicked, 'talk-item_active': active || activeItem === id}"
+           @click.native="doClick"
+  >
     <div slot="header" class="clearfix">
       <NuxtLink class="item__date" :to="'/talk/' + op.id" title="Ссылка на разговор">{{ op.updated ? new Date(op.updated).toLocaleString() : '&nbsp;' }}</NuxtLink>
-      <NuxtLink v-if="op.id" class="item__id" :to="'/talk/' + op.id" :title="talkInfo">{{ op.id.substring(op.id.length - 6) }}</NuxtLink>
+      <NuxtLink v-if="op.id" class="item__id" :to="'/talk/' + op.id" :title="talkInfo">{{ idShort }}</NuxtLink>
       <div v-if="op.filename" v-html="op.filename"></div>
       <div v-if="op.id && !op.done">done: {{ op.done ? 'yes' : 'no' }}</div>
+      <div class="talk-item__prompt" v-if="op.prompt" v-html="'prompt: ' + op.prompt"></div>
       <div class="talk-item__player" v-if="audioUri">
         <audio controls :src="audioUri"></audio>
         <el-radio-group v-if="audioReady" class="talk-item__player-speed" v-model="speed" size="mini">
@@ -25,6 +29,7 @@
       :title="'Click to go to: ' + chunk.alternatives[0].words[0].startTime"
       @click="goto(chunk.alternatives[0].words[0].startTime)">
         {{ chunk.alternatives[0].text }}
+        <div class="line-spacer" v-if="chunk.paragraphEnd"></div>
       </div>
     </div>
 
@@ -37,11 +42,16 @@
 </template>
 
 <style>
-.chunk-line { color: #aaa; cursor: pointer; }
+.chunk-line { color: #aaa; cursor: pointer; display: inline; }
 .chunk-line_active { color:inherit; }
 .chunk-line_active:hover { text-shadow: 0 0 1px black; }
 .chunk-line:hover { color: inherit; }
 
+.line-spacer {
+  clear: both;
+  display: block;
+  height: 1em;
+}
 .item__date {
   color: #999;
 }
@@ -57,7 +67,21 @@
   overflow-y: hidden;
   width: 100%;
 }
+.talk-item:not(.talk-item_clicked) .el-card__body:before {
+  content: '';
+  display: block;
+  position: absolute;
+  bottom: 16px;
+  left: 20px;
+  right: 20px;
+  height: 24px;
+  cursor: pointer;
+  background: linear-gradient(to bottom, rgba(255,255,255,0) 0%,rgba(255,255,255,1) 100%);
+}
 .talk-item_active .el-card__body {
+  max-height: none;
+}
+.talk-item_clicked .el-card__body {
   max-height: none;
 }
 .talk-item_undone {
@@ -95,10 +119,22 @@
     opacity: 0;
   }
 }
+.talk-item__prompt {
+  font-size: 0.8em;
+  color: #999;
+  margin-top: 2px;
+  opacity: 0;
+}
+.talk-item:hover .talk-item__prompt {
+  opacity: 1;
+}
 </style>
 
 <script lang="js">
 import "vue-awesome/icons/share-alt";
+
+const getDataTimeoutMs = 300 * 1000;
+const getDataIntervalMs = 2000;
 
 export default {
   props: ['id', 't', 'active'],
@@ -111,13 +147,32 @@ export default {
       selectionProcess: false,
       isShare: false,
       editedText: '',
+      clicked: false,
+      chunksPool: '',
     }
   },
 
   computed: {
+    idShort() {
+      const id = `${this.op.id || ''}`;
+      return id.substring(id.length - 6);
+    },
     chunksFiltered() {
       if (!this.op.chunks) return [];
-      return this.op.chunks.filter(c => c.channelTag === '1');
+      let paragraph = '';
+      return this.op.chunks.filter(c => c.channelTag === '1')
+        .map(chunk => {
+          paragraph += chunk.alternatives[0].text;
+          if (paragraph.length > 200) {
+            paragraph = '';
+            chunk.paragraphEnd = true;
+          }
+          else {
+            chunk.paragraphEnd = false;
+          }
+
+          return chunk;
+        })
     },
     activeItem() {
       return this.$store.state.activeItem;
@@ -134,15 +189,15 @@ export default {
       return this.op.mp3Uri || this.op.uploadedUri;
     },
     talkInfo() {
-      return 'Формат: ' + this.op.uploadedUri.substring(this.op.uploadedUri.length - 3);
+      return 'Формат: ' + this.op?.uploadedUri?.substring(this.op.uploadedUri.length - 3);
     },
     shortText() {
       console.log('this.chunksFiltered: ', this.chunksFiltered);
       return this.chunksFiltered
-        ?.slice(0, 5)
+        // ?.slice(0, 5)
         .map(ch => ch.alternatives[0].text)
         .join('\n')
-        .substring(0, 150);
+        // .substring(0, 150);
     }
   },
 
@@ -151,8 +206,8 @@ export default {
       if (this.audioReady) this.audio().playbackRate = speed;
     },
     activeItem(val) {
-      console.log('watch activeItem: ', val);
-      if (this.audioReady && this.id != val) this.audio().pause();
+      // console.log('watch activeItem: ', val);
+      if (this.audioReady && this.id !== val) this.audio()?.pause();
     }
   },
 
@@ -184,13 +239,17 @@ export default {
       }
     }, 500);
 
-    // update 100 sec after load while not done
-    let tries = 10;
-    setInterval(() => {
+    // update 300 sec after load while not done
+    let tries = Math.floor(getDataTimeoutMs / getDataIntervalMs);
+    const interval = setInterval(() => {
       if (!this.op.done) {
         this.tryGetData();
+        tries--;
+        if (tries <= 0) {
+          clearInterval(interval);
+        }
       }
-    }, 10000);
+    }, getDataIntervalMs);
 
     this.interval = setInterval(() => {
       if (this.audioReady && this.audio()) this.currentTime = this.audio().currentTime;
@@ -222,6 +281,19 @@ export default {
       }
     },
 
+    chunkAccum(chunk) {
+      this.chunksPool += chunk;
+      if (this.chunksPool > 200) {
+        this.chunksPool = '';
+        return true;
+      }
+      return false;
+    },
+
+    doClick() {
+      this.clicked = true;
+    },
+
     getEditedText() {
       return this.$refs.chunks.innerText;
     },
@@ -242,7 +314,7 @@ export default {
       } catch(e) {
         setTimeout(() => {
           this.tryGetData(tries - 1);
-        }, 10000);
+        }, getDataIntervalMs);
       }
     },
 

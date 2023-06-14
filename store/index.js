@@ -26,6 +26,8 @@ export const state = () => ({
   postProcessing: true,
   language: 'ru',
   punctuation: true,
+  prompt: '',
+  provider: 'whisper',
   featAudioRecorder: false,
 })
 
@@ -88,6 +90,12 @@ export const mutations = {
   punctuation(state, newValue) {
     state.punctuation = newValue;
   },
+  prompt(state, newValue) {
+    state.prompt = newValue;
+  },
+  provider(state, newValue) {
+    state.provider = newValue;
+  },
 };
 
 export const actions = {
@@ -109,7 +117,7 @@ export const actions = {
 
   removeItem({ commit, state, getters }, id) {
     // console.log('state.itemsHistory:', [...state.itemsHistory, id]);
-    const h = [...state.itemsHistory];
+    const h = [...state.itemsHistory.filter((id) => typeof id === 'string')]
     if (h.indexOf(id) !== -1) delete(h[h.indexOf(id)]);
     commit('itemsHistory', h.filter(Boolean));
     firebase

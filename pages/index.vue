@@ -7,34 +7,54 @@
             <label>Upload
               <input type="file" id="file" ref="file" v-on:change="handleFileUpload()"/>
             </label>
-            <el-checkbox v-model="postProcessing" >Вырезать тишину и шум</el-checkbox>
-            <el-checkbox v-model="punctuation" >Расставлять знаки препинания</el-checkbox>
-            <el-select v-model="language" placeholder="Язык">
-              <el-option
-                v-for="lang in ['ru', 'en']"
-                :key="lang"
-                :label="lang"
-                :value="lang"
-              >
-              </el-option>
-            </el-select>
-            <el-link :type="formState" v-html="formMsg"></el-link>
 
-            <template  v-if="$store.state.featAudioRecorder">
-              <br/><br/><audio-recorder
-                :upload-url="recorderUploadUrl"
-                :attempts="1"
-                :time="10"
-                :headers="recorderHeaders"
-                :before-recording="recorderCallback"
-                :pause-recording="recorderCallback"
-                :after-recording="recorderCallback"
-                :select-record="recorderCallback"
-                :before-upload="recorderCallback"
-                :successful-upload="recorderCallback"
-                :failed-upload="recorderCallback"/>
-               <el-button v-on:click="submitFile()">Submit</el-button>
-            </template>
+            <div style="display: inline-block; margin: 14px 0 0">
+              <el-checkbox v-model="postProcessing" >Вырезать тишину и шум</el-checkbox>
+<!--              <el-checkbox v-model="punctuation" >Расставлять знаки препинания</el-checkbox>-->
+            </div>
+
+            <div style="margin-top: 10px">
+
+              <el-select style="width:70px;margin-top: 10px" v-model="language" placeholder="Язык">
+                <el-option
+                  v-for="lang in ['ru', 'en']"
+                  :key="lang"
+                  :label="lang"
+                  :value="lang"
+                >
+                </el-option>
+              </el-select>
+              <el-select style="width:100px" v-model="provider" placeholder="Движок">
+                <el-option
+                  v-for="item in availableSttProviders"
+                  :key="item"
+                  :label="item"
+                  :value="item"
+                >
+                </el-option>
+              </el-select>
+              <div style="display: inline-block; width:300px; margin-top: 10px">
+                <el-input v-if="provider === 'whisper'" v-model="prompt" placeholder="prompt"></el-input>
+              </div>
+
+              <el-link :type="formState" v-html="formMsg"></el-link>
+
+              <template v-if="$store.state.featAudioRecorder">
+                <br /><br /><audio-recorder
+                  :upload-url="recorderUploadUrl"
+                  :attempts="1"
+                  :time="10"
+                  :headers="recorderHeaders"
+                  :before-recording="recorderCallback"
+                  :pause-recording="recorderCallback"
+                  :after-recording="recorderCallback"
+                  :select-record="recorderCallback"
+                  :before-upload="recorderCallback"
+                  :successful-upload="recorderCallback"
+                  :failed-upload="recorderCallback" />
+                 <el-button v-on:click="submitFile()">Submit</el-button>
+              </template>
+            </div>
           </template>
           <el-link v-if="!isTTSAvailable" type="danger">Сервер распознавания недоступен, попробуйте позже</el-link>
         </div>
@@ -90,6 +110,10 @@
 .upload-form .el-link {
   vertical-align: baseline;
 }
+.el-checkbox,
+.el-radio-button {
+  filter: grayscale(100%);
+}
 .el-checkbox__input {
   margin-top: -4px;
 }
@@ -117,6 +141,8 @@ export default Vue.extend({
       formMsg: '',
       formState: '',
       isTTSAvailable: true,
+      prompt: '',
+      availableSttProviders: [],
     }
   },
 
@@ -157,12 +183,20 @@ export default Vue.extend({
         this.$store.commit('language', val);
       }
     },
-    punctuation: {
+    /*punctuation: {
       get() {
         return this.$store.state.punctuation;
       },
       set(val) {
         this.$store.commit('punctuation', val);
+      }
+    },*/
+    provider: {
+      get() {
+        return this.$store.state.provider;
+      },
+      set(val) {
+        this.$store.commit('provider', val);
       }
     },
     isDraggable() {
@@ -194,7 +228,9 @@ export default Vue.extend({
       formData.append('file', this.file);
       formData.append('postProcessing', this.postProcessing);
       formData.append('language', this.language);
-      formData.append('punctuation', this.punctuation);
+      // formData.append('punctuation', this.punctuation);
+      formData.append('prompt', this.prompt);
+      formData.append('provider', this.provider);
 
       const answer = await this.$axios.post(
         this.$store.state.serverUrl + '/upload',
@@ -256,6 +292,10 @@ export default Vue.extend({
     try {
       const answer = await this.$axios.get(this.$store.state.serverUrl + '/');
       if (answer) this.isTTSAvailable = true;
+      if (answer && answer.data) {
+        if (answer.data.whisper) this.availableSttProviders.push('whisper');
+        if (answer.data.yandex) this.availableSttProviders.push('yandex');
+      }
     }
     catch(e) {
       this.isTTSAvailable = false;
