@@ -7,7 +7,7 @@ export default {
 
   // Global page headers: https://go.nuxtjs.dev/config-head
   head: {
-    title: 'yandex-speechkit-talk-viewer',
+    title: 'Talk to Text - Convert audio to text, transcribe voice to text, subtitles',
     meta: [
       { charset: 'utf-8' },
     ],
